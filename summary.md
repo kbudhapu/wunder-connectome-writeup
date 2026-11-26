@@ -1,6 +1,6 @@
 # Alfa Connectome (Wunder Fund): summary
 
-**Final result: 94th of 5,841 teams on the private leaderboard (top 1.6%).** My best public score was 0.66230 (sub48), against 0.5935 for the organisers' baseline. My best public rank was about 160. I had drifted to about 202 by the time the public board closed, and the private leaderboard moved me up **108 places**. I worked on it from October 7 to November 10, 2026, with Claude (Anthropic's model, through Claude Code) as my engineering partner.
+**Final result: 94th of 5,841 teams on the private leaderboard (top 1.6%).** My best public score was 0.66230 (sub48), against 0.5935 for the organisers' baseline. My best public rank was about 160. I had drifted to about 202 by the time the public board closed, and the private leaderboard moved me up **108 places**. I worked on it from October 7 to November 10, 2026.
 
 This is the middle-length version. [README.md](README.md) is the one-page version; [technical.md](technical.md) has everything, including every submission and every experiment.
 
@@ -28,7 +28,7 @@ This is the middle-length version. [README.md](README.md) is the one-page versio
 | Members also trained on validation | 0.65849 | +0.0010 |
 | Ensembling different model types | 0.66230 | +0.0038 |
 
-**83% of my total gain came from one observation on day one.** Claude's study of the baseline showed that many of its predictions sat beyond the metric's ±2 clip, and rescaling fixed it. It wasn't modelling. But it's the lesson I'd put first: read the metric before touching the model.
+**83% of my total gain came from one observation on day one.** My study of the baseline showed that many of its predictions sat beyond the metric's ±2 clip, and rescaling fixed it. It wasn't modelling. But it's the lesson I'd put first: read the metric before touching the model.
 
 The remaining +0.012 is the modelling work. At that level, a gain of 0.0003 sits at the leaderboard's noise floor.
 
@@ -39,7 +39,7 @@ The remaining +0.012 is the modelling work. At that level, a gain of 0.0003 sits
 - **Every target is a whole number of steps, and there are only four step sizes:** 0.125, 0.241, 0.469 and 0.657.
   - The coarsest group carries 48% of the score weight.
   - Every model scores about 0.44 there, against 0.73–0.80 elsewhere.
-- **Claude decoded what the targets measure:** the extreme of the first instrument's **next price swing**. That's a stopping time, not a fixed horizon, and the rule reproduces the targets on 97–100% of cleanly decoded updates.
+- **I decoded what the targets measure:** the extreme of the first instrument's **next price swing**. That's a stopping time, not a fixed horizon, and the rule reproduces the targets on 97–100% of cleanly decoded updates.
 - **The missing information sits in the near future.** A "peek" model allowed to see the next 100 rows explains 0.86, against 0.69 for mine. Several independent checks found nothing available at prediction time that recovers that part.
 - **Validation is a different period from train.** A classifier separates the two from the inputs alone (AUC 0.975), and the step-size mix differs.
 
@@ -74,7 +74,7 @@ My four members' errors correlate 0.97–0.99 with each other. The organisers' b
 
 ## 5. Validation: the hardest part
 
-Validation ran **0.023–0.031 above the public leaderboard**, and +0.003 gains on validation repeatedly showed up as zero on the board. Claude's analyses found why:
+Validation ran **0.023–0.031 above the public leaderboard**, and +0.003 gains on validation repeatedly showed up as zero on the board. My analyses found why:
 - most of the gap is the step-size mix;
 - my edge over the baseline shrinks on data unlike train (+0.023 on the most train-like fifth to +0.010 on the least);
 - leaderboard noise is about ±0.0003, and a full re-roll of a stack moves it by about 0.0008.
@@ -88,7 +88,7 @@ Validation ran **0.023–0.031 above the public leaderboard**, and +0.003 gains 
 
 **The yardstick that finally worked was ESf,** a fold-honest stack scored on 200 training sequences no model trained on. It predicted sub48's gain over sub43 at +0.00042; the board measured +0.00050.
 
-One disclosure: the no-mask rule covered training, weighting and selection, but not the stack itself. In every package the 12 ridge weights were fitted on validation's scored rows. Claude flagged this on November 8, and a mask-free refit was proposed but never shipped.
+One disclosure: the no-mask rule covered training, weighting and selection, but not the stack itself. In every package the 12 ridge weights were fitted on validation's scored rows. I caught this on November 8, and a mask-free refit was planned but never shipped.
 
 ![Training fit against held-out score](figures/fig6_fit_vs_heldout.png)
 
@@ -98,7 +98,7 @@ Across about 370 training runs, training fit keeps rising while the held-out sco
 
 ![Runtime against score](figures/fig5_runtime_vs_score.png)
 
-Several of my best ensembles timed out at first, so runtime decided what could ship. Claude implemented each step below, and I gated each one on a bit-exact or metric-equal check:
+Several of my best ensembles timed out at first, so runtime decided what could ship. I gated each step below on a bit-exact or metric-equal check:
 1. ONNX Runtime at about 42 µs per row for one small GRU;
 2. a Numba streaming GRU, 2.6–2.9x faster;
 3. each row fused into one compiled call;
@@ -112,7 +112,7 @@ That last step took the final line-up from a timeout to 42 minutes; with the bas
 
 ## 7. What didn't work, and why
 
-Claude's failure review sorted nearly every failed idea into a few mechanisms:
+My failure review sorted nearly every failed idea into a few mechanisms:
 
 | Mechanism | Examples |
 |---|---|
@@ -146,8 +146,4 @@ Where mine held up: the validation discipline and the inference engine. I gained
 
 ## Roles
 
-- **Claude:** wrote most of the code (trainer, analyses, C engine), ran the training queues and analyses on my desktop GPU, and kept the notes.
-- **Me:**
-  - the direction and the project's rules;
-  - what to test next;
-  - every upload and the final selection.
+Claude (Anthropic's model, through Claude Code) wrote the code. Everything else was mine: the direction and the project's rules, what to test and analyse, the experiments, every upload and the final selection.

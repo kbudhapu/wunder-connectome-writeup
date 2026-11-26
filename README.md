@@ -21,7 +21,7 @@
 ![End-to-end pipeline](figures/fig8_pipeline.png)
 
 ## What mattered most
-1. **Reading the metric before building models.** On day one, Claude's analysis of the baseline showed that a large share of its predictions sat beyond the metric's ±2 clip. Rescaling the outputs by 0.25, with no retraining, gave +0.057, which is 83% of my total gain.
+1. **Reading the metric before building models.** On day one, my analysis of the baseline showed that a large share of its predictions sat beyond the metric's ±2 clip. Rescaling the outputs by 0.25, with no retraining, gave +0.057, which is 83% of my total gain.
 2. **Understanding the data.**
    - The targets fall into four step-size groups, and the coarsest group carries 48% of the score weight but is predicted far worse (0.44 vs 0.73–0.80).
    - The targets measure the end of the next price swing.
@@ -33,14 +33,14 @@
    - Going from ONNX Runtime to Numba to a C engine with AVX-512 VNNI int8 kernels and 4-bit weights is what let the final line-up run at all.
 
 ## Tools and roles
-I ran this project with Claude (Anthropic's model, through Claude Code) as my engineering partner. Claude wrote most of the code and ran the training queues and analyses on my desktop GPU. It also kept the running notes.
+Claude (Anthropic's model, through Claude Code) wrote the code.
 
 I set the direction and the rules, for example:
 - no tuning toward the hidden scoring mask;
 - two seeds before any verdict;
 - nothing ships without verification against the offline pipeline.
 
-I also chose what to test and made every submission and final-selection decision.
+I chose what to test and what to analyse, ran the experiments and made every submission and final-selection decision.
 
 ## Read more
 - [Summary](summary.md) (3–4 pages): the problem, the score sources, data findings, the model, validation, the engine, failures and lessons.

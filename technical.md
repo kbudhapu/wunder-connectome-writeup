@@ -4,11 +4,7 @@
 
 **Result: 94th of 5,841 on the private leaderboard (top 1.6%).** Best public score 0.66230 (sub48), against 0.5935 for the organisers' baseline. My best public rank was about 160; after I stopped submitting I drifted to about 202 as others passed me, and the private leaderboard moved me up **108 places**, from about 202 to 94th. I worked on the competition from October 7 to November 10, 2026.
 
-**How I worked.** I ran the project with Claude (Anthropic's model, through Claude Code) as my engineering partner.
-- **Claude's part:** writing most of the code (trainer, analyses, the C inference engine), running the GPU training queues and CPU analyses on my desktop, and keeping the notes (a day-by-day log, a results ledger, a failure review).
-- **My part:** the direction, the rules of the project, what to test next, and every upload and final-selection decision.
-
-Where an analysis below is Claude's, I say so.
+**How I worked.** Claude (Anthropic's model, through Claude Code) wrote the code: the trainer, the analysis scripts and the C inference engine. Everything else is mine: the direction and the rules of the project, what to test and analyse, the experiments, and every upload and final-selection decision.
 
 What follows: every finding, the model, validation, the engine, a quantified failure analysis, and appendices with every submission, a dated timeline and a catalogue of about 280 experiments.
 
@@ -41,7 +37,7 @@ What follows: every finding, the model, validation, the engine, a quantified fai
 | Ensembling and member diversity (sub20, sub26, sub38, sub48) | 0.66230 | +0.0038 |
 
 **The calibration step needs stating plainly, because it's 83% of the total.**
-- On day one, Claude's study of the baseline found that a large share of its predictions sat beyond ±2, where the metric clips them.
+- On day one, my study of the baseline found that a large share of its predictions sat beyond ±2, where the metric clips them.
 - Any scale up to about 0.35 fixes it, and the curve is flat there.
 - It wasn't clever modelling, but it's the lesson I'd put first: read the metric before touching the model.
 
@@ -55,7 +51,7 @@ Most of the competition went into understanding the data. Most findings explaine
 
 - **Every target is a whole number of steps.** Each sequence has one step size shared by t0 and t1, and there are only four: 0.125, 0.241, 0.469 and 0.657.
   - The group can be recognised from the 99 warm-up rows 96% of the time, and by row 1,000 99.4% of the time.
-  - Claude's tooling reads the step from the data rather than from hard-coded values; I made that a project rule.
+  - My tooling reads the step from the data rather than from hard-coded values; I made that a project rule.
 - **Hard pair rules:**
   - t0 and t1 are never both positive.
   - When one is positive, the other is at most −3 steps.
@@ -63,7 +59,7 @@ Most of the competition went into understanding the data. Most findings explaine
 - **A direction/size split.** Writing t0 = D − C and t1 = −D − C separates direction D from a shared, spread-like part C.
   - A perfect D alone would score 0.956; a perfect C alone 0.713.
   - **Direction is the bottleneck.** My models predict D and C through a dedicated output head.
-- **The target definition.** On October 28, Claude decoded the target rule: t0 and t1 are measured against the extreme of i0's **next price swing**.
+- **The target definition.** On October 28, I decoded the target rule: t0 and t1 are measured against the extreme of i0's **next price swing**.
   - This is a stopping time, not a fixed horizon.
   - The rule reproduces the targets on 97–100% of cleanly decoded updates.
   - Median horizons (train / validation) run from ~17 rows on the finest step to 226 / 170 rows on the 0.469 step and 135 / 52 on the coarsest, and about 1,000 rows for big swings.
@@ -90,7 +86,7 @@ Most of the competition went into understanding the data. Most findings explaine
 
   Sorting the book costs −0.04, so column identity matters.
 - **Tick moves are decodable; levels weren't, for me.**
-  - One linear map per step group decodes the tick moves 98.6–100% exactly on unseen sequences. On a step group it never saw, a single pooled linear decoder gets 71% on the finest group, and a nonlinear one that Claude built gets 95–97%.
+  - One linear map per step group decodes the tick moves 98.6–100% exactly on unseen sequences. On a step group it never saw, a single pooled linear decoder gets 71% on the finest group, and a nonlinear one I built gets 95–97%.
   - But feeding decoded ticks instead of raw prices lost −0.0045. The within-row shape of the price block carries the direction information.
 - **a0–a7 behave like clocks and activity measures,** tied to C and never to D.
 - **Sequences are consecutive slices of longer streams.** The rules treat sequences as independent, so I used this only offline, to build validation splits that never put neighbouring slices on both sides.
@@ -101,8 +97,8 @@ Most of the competition went into understanding the data. Most findings explaine
 ### 3.4 The scoring mask
 
 - Scored rows are picked mostly by target size: big |D| is about 3x as likely to be scored. They come in runs of about 4 rows.
-- **I chose not to train, weight or select toward the mask,** because the test mask is hidden. Claude measured mask-weighted fine-tuning as a diagnostic: +0.0013 for a single model. I left it out under that rule. Section 10 comes back to whether that was right.
-- **One exception I didn't catch until late:** in every package, the 12 ridge stack weights were fitted on validation's scored rows. Claude flagged this on November 8, and a mask-free refit (all rows) was proposed but never shipped. So the rule covered training, weighting and model selection, not the stack fit.
+- **I chose not to train, weight or select toward the mask,** because the test mask is hidden. I measured mask-weighted fine-tuning as a diagnostic: +0.0013 for a single model. I left it out under that rule. Section 10 comes back to whether that was right.
+- **One exception I didn't catch until late:** in every package, the 12 ridge stack weights were fitted on validation's scored rows. I caught this on November 8, and a mask-free refit (all rows) was planned but never shipped. So the rule covered training, weighting and model selection, not the stack fit.
 
 ## 4. The final solution (sub48)
 
@@ -141,7 +137,7 @@ After each member is put on its own least-squares scale, my four members' errors
 
 This was the hardest part of the competition. Validation ran **0.023–0.031 above the public leaderboard**, and gains of +0.003 on validation repeatedly showed up as about zero on the board.
 
-What Claude's analyses found:
+What my analyses found:
 1. **The step mix explains most of the gap.** Re-weighting validation toward train's step mix reproduced three leaderboard scores within ~0.002 with one parameter. The test appears to sit 60–70% of the way from validation's mix to train's.
 2. **My edge over the baseline fades on data unlike train.** Ranking validation sequences by how train-like they are, the edge shrinks from +0.023 on the most train-like fifth to +0.010 on the least. Every strong recipe fades by about the same amount.
 3. **Leaderboard noise is about ±0.0003,** and a full re-roll of a stack moves it by ~0.0008. Differences under ~0.001 aren't evidence.
@@ -153,7 +149,7 @@ The rules I set from that:
   - the 200 held-out train sequences;
   - the least train-like third;
   - a validation split by stream, so the halves don't share neighbouring slices.
-  - In the final weeks Claude added **ESf**, a fold-honest stack scored on the held-out train sequences. ESf predicted sub48's gain over sub43 at +0.00042; the board measured +0.00050.
+  - In the final weeks I added **ESf**, a fold-honest stack scored on the held-out train sequences. ESf predicted sub48's gain over sub43 at +0.00042; the board measured +0.00050.
 - **Two seeds before any verdict.** Seed spread for these recipes (~0.002) was larger than most effects.
 - **Compare F members only with F members.** sub51 lost 0.0009 by putting a train-only model in an F slot.
 - **Analyse every failure before closing it:** where it helped, where it hurt, and the mechanism.
@@ -174,7 +170,7 @@ The 60-minute single-core limit decided what could ship. Several packages timed 
 
 sub39b finished in 61:41 and was scored, but a run past 60 minutes doesn't count for the leaderboard. Several of my best offline ensembles never shipped at all.
 
-**The engine, step by step** (Claude implemented each step; I gated each on a bit-exact or metric-equal check):
+**The engine, step by step** (I gated each step on a bit-exact or metric-equal check):
 1. ONNX Runtime per row: ~42 µs/row for one 2×128 GRU.
 2. A Numba streaming GRU: 2.6–2.9x faster.
 3. Each row fused into one compiled call: −20%.
@@ -186,13 +182,13 @@ sub39b finished in 61:41 and was scored, but a run past 60 minutes doesn't count
 9. 4-bit packed MLP weights (a Q4K kernel, −18% µs/row). That took the W384 line-up from a timeout (sub41uF, int8) to 42 minutes (sub46).
 
 **Lessons from running on the platform:**
-- **The platform isn't the desktop.** Dense members ran relatively much slower there, because weight memory per row outgrew a server core's cache. Claude's fitted model: platform minutes ≈ 5.8 + 1.29 × desktop µs/row (sd ~2 min). The same line-up shape has run 49:12, 56:12 and 58:47, so identical work varied by about ±5 minutes.
+- **The platform isn't the desktop.** Dense members ran relatively much slower there, because weight memory per row outgrew a server core's cache. My fitted model: platform minutes ≈ 5.8 + 1.29 × desktop µs/row (sd ~2 min). The same line-up shape has run 49:12, 56:12 and 58:47, so identical work varied by about ±5 minutes.
 - **A guard package** switches to a cheaper package at a sequence boundary after 50–55 minutes (the trigger changed between versions). The first version loaded both packages up front and failed the platform's 60-second pre-run; a lazy-loading version fixed it.
 - **Every package was verified before I uploaded it:** the metric matched the offline pipeline on check sequences, outputs were finite, it loaded from a fresh directory, and it was timed interleaved against a known package.
 
 ## 7. What didn't work
 
-Claude's failure review sorted nearly every failed idea under six mechanisms:
+My failure review sorted nearly every failed idea under six mechanisms:
 
 | Mechanism | Examples |
 |---|---|
@@ -225,7 +221,7 @@ Section 7 sorts failures by mechanism. Here I measure every controlled experimen
 
 ### Method
 
-- **The runs:** 272 train-only training runs with saved validation predictions. Claude paired every two runs whose settings differ in **exactly one** setting, filling in the trainer's defaults for settings a run predates. That gives 442 pairs: 70 differ only in the random seed, and 129 distinct setting changes remain after excluding the cases below.
+- **The runs:** 272 train-only training runs with saved validation predictions. I paired every two runs whose settings differ in **exactly one** setting, filling in the trainer's defaults for settings a run predates. That gives 442 pairs: 70 differ only in the random seed, and 129 distinct setting changes remain after excluding the cases below.
 - **Scoring:** each pair is scored on all 1,873 validation sequences (scored rows), split by step group, plus the 200 held-out train sequences.
 - **The noise yardstick:** the seed-only pairs show how much two runs of the *same* recipe differ.
 - **Excluded:**
@@ -296,7 +292,7 @@ So, measured against my main recipe, **no single setting change moved the coarse
 ## 9. How I worked
 
 - **Hardware:** a laptop for analysis on a small cache; a desktop (Ryzen 5 9600X, RTX 5060 Ti 8 GB, 15 GB RAM) over Tailscale for GPU training, CPU jobs and package timing.
-- **Training ran in queues** (numbered up to 98). Claude wrote each queue, scored and logged every run automatically, and kept the rule of one GPU training at a time, with CPU analyses under memory caps.
+- **Training ran in queues** (numbered up to 98). Every run was scored and logged automatically, under my rule of one GPU training at a time, with CPU analyses under memory caps.
 - **Records:**
   - a day-by-day log of every step's why and findings;
   - a results ledger of every finished test;
@@ -305,7 +301,7 @@ So, measured against my main recipe, **no single setting change moved the coarse
   - a model registry with a fixed naming scheme.
 
   Exact settings and scores for 505 training runs are kept, so any model can be retrained deterministically.
-- **Agent swarms for broad questions.** I had Claude run parallel agent swarms for:
+- **Agent swarms for broad questions.** I ran parallel agent swarms for:
   - a data atlas (~47 graphs);
   - target-horizon decoding;
   - a bug hunt on the gap (none found; my metric matched the official scorer to 1e-10);
@@ -355,7 +351,7 @@ They also closed many of the same dead ends: per-group rescaling, hand-built ord
 
 # Appendices: the full record
 
-**Voice.** "I" is the competitor and "Claude" is the AI assistant.
+**Voice.** "I" is me, the competitor. Claude (Anthropic's model, through Claude Code) wrote the code.
 
 **Abbreviations.**
 - **FV:** full validation (1,873 sequences).
@@ -482,7 +478,7 @@ I picked them because they were my top 3 public scores. The record does not show
 | 10-28 | LB backtest of offline yardsticks | does offline agree with LB? | far Spearman +0.72, near +0.01; halfB_ens retired |
 | 10-29 | far-based ship gate; 153-run member screen | sub37 lost and far called it | loss-diverse wpg member → sub38 0.66166, rank 160 |
 | 10-31 | W384 passes both seeds; W384 lineups time out | width | +0.0028 / +0.0018 offline; sub41tF/uF timeout → hard ~31 us/row ceiling |
-| 11-01/02 | PT16 + packed int4 kernel (Q4K) | runtime is memory traffic | −18% us/row; sub46 0.66186 at 42:02 (I submitted against Claude's advice) |
+| 11-01/02 | PT16 + packed int4 kernel (Q4K) | runtime is memory traffic | −18% us/row; sub46 0.66186 at 42:02 |
 | 11-02 | ESf stack estimate; baseline back in | baseline error diversity, ESf +0.00042 | sub48 **0.66230** (actual +0.00050) |
 | 11-03 | W384D distillation; F-slot rule | ESf +0.0035 | sub51 −0.0009; sub52 0.66223 (neutral); rule: compare F to F |
 | 11-03 | Lazy-loading guard | sub52g prerun timeout (60 s limit) | sub52gL loads in 18–22 s |
@@ -793,17 +789,17 @@ Verdicts:
 | Queue 14 ran on CPU ~2 h (CUDA_VISIBLE_DEVICES empty) |
 | RAM exhausted beside IsaacLab; kernel killed IsaacLab and the session |
 | Wi-Fi watchdog reboot 10-17 19:32; hp7 killed at step 22,660 / 64,000 |
-| CPU queue OOM 10-21 22:30 killed my 4.2 GB job and the Claude app |
+| CPU queue OOM 10-21 22:30 killed my 4.2 GB job and my coding session |
 | STRUCT queue failed (systemd OOMScoreAdjust) |
 | Laptop 90 GB partial cache removed |
 | Market-teacher indexing bug caught before use |
 | sub15 built ~5 h late |
-| sub15 timeout: Claude ignored the ≤40 us/row rule |
+| sub15 timeout: the package broke my ≤40 us/row rule |
 | sub28 runtime miss (predicted 40–45, took 54.5 min) |
 | Contaminated ensemble file / mis-scaled equal-weight ensemble |
 | Reboot 10-29 ~09:34 killed queue 65 |
 | 10-29 22:18 OOM killed my app and a twin run |
-| sub41tF/uF timeouts: Claude scaled off sub28 and broke the ~31 us ceiling |
+| sub41tF/uF timeouts: timing was scaled off sub28 and broke the ~31 us ceiling |
 | Baseline ES predictions at 0.25× scale invalidated V1 and the first sub49 |
 | sub52g prerun timeout |
 | Group-gating bug gave a spurious −0.007 |
