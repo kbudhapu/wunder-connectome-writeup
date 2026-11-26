@@ -1,5 +1,7 @@
 # Alfa Connectome (Wunder Fund): complete write-up
 
+*This is the really long version (about 12,000 words): every experiment, the full failure analysis and all ~70 submissions. For a briefer read, see the [3–4 page summary](summary.md) or the [one-page version](README.md).*
+
 **Result: 94th of 5,841 on the private leaderboard (top 1.6%).** Best public score 0.66230 (sub48), against 0.5935 for the organisers' baseline. My best public rank was about 160; after I stopped submitting I drifted to about 202 as others passed me, and the private leaderboard moved me up **108 places**, from about 202 to 94th. I worked on the competition from October 7 to November 10, 2026.
 
 **How I worked.** I ran the project with Claude (Anthropic's model, through Claude Code) as my engineering partner.
@@ -8,9 +10,7 @@
 
 Where an analysis below is Claude's, I say so.
 
-[One-page version](README.md) · [Summary (3–4 pages)](summary.md)
-
-This is the complete version: every finding, the model, validation, the engine, a quantified failure analysis, and appendices with every submission, a dated timeline and a catalogue of about 280 experiments.
+What follows: every finding, the model, validation, the engine, a quantified failure analysis, and appendices with every submission, a dated timeline and a catalogue of about 280 experiments.
 
 ---
 
